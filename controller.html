@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BumbleBee Controller</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        button { font-size: 20px; padding: 20px 40px; margin: 10px; cursor: pointer; border-radius: 10px; border: none; color: white; }
+        .forward { background-color: #28a745; } /* Grün */
+        .back { background-color: #dc3545; }    /* Rot */
+        .left { background-color: #007bff; }    /* Blau */
+        .stop { background-color: #6c757d; }    /* Grau */
+        .connect { background-color: #ffc107; color: black; }
+    </style>
+</head>
+<body>
+    <h1>BumbleBee-C6 RGB Control</h1>
+    <button class="connect" onclick="connectBT()">1. Bluetooth verbinden</button>
+    <br><br>
+    <button class="forward" onclick="sendCommand('W')">VORWÄRTS (Grün)</button><br>
+    <button class="left" onclick="sendCommand('D')">LINKS (Blau)</button>
+    <button class="back" onclick="sendCommand('A')">RÜCKWÄRTS (Rot)</button><br>
+    <button class="stop" onclick="sendCommand('S')">STOPP (Aus)</button>
+
+    <script>
+        let char;
+        const serviceUUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+        const charUUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+        async function connectBT() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'BumbleBee-C6' }],
+                    optionalServices: [serviceUUID]
+                });
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(serviceUUID);
+                char = await service.getCharacteristic(charUUID);
+                alert("Verbunden!");
+            } catch (error) {
+                console.log(error);
+                alert("Verbindung fehlgeschlagen: " + error);
+            }
+        }
+
+        async function sendCommand(cmd) {
+            if (char) {
+                await char.writeValue(new TextEncoder().encode(cmd));
+            } else {
+                alert("Bitte zuerst verbinden!");
+            }
+        }
+    </script>
+</body>
+</html>
